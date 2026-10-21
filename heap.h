@@ -2,6 +2,8 @@
 #define HEAP_H
 #include <functional>
 #include <stdexcept>
+#include <vector>
+#include <utility>
 
 template <typename T, typename PComparator = std::less<T> >
 class Heap
@@ -61,14 +63,78 @@ public:
 
 private:
   /// Add whatever helper functions and data members you need below
-
-
-
-
+  std::vector<T> items_;
+  int m_; // m_ children per node 
+  PComparator comp_; // determines precedence 
+  void trickle_up(size_t i);
+  void trickle_down(size_t i);
 };
 
 // Add implementation of member functions here
 
+template<typename T, typename PComparator>
+void Heap<T,PComparator>::trickle_up(size_t i){
+  // if parent exists
+  while (i > 0){
+    size_t parent = (i - 1)/ m_;
+
+    if(comp_(items_[i], items_[parent])){
+      std::swap(items_[i], items_[parent]);
+      i = parent;
+    } else {
+    break;
+    }
+  } 
+}
+
+template<typename T, typename PComparator>
+void Heap<T,PComparator>::trickle_down(size_t i){
+  size_t left_child = m_ * i + 1; 
+  // no children
+  if (left_child >= items_.size()){
+    return;
+  }
+  
+  size_t best = left_child;
+  // loop thru other children to find potential optimal child 
+  for (size_t other = left_child + 1; other < left_child + m_ && other < items_.size(); other++){
+    if (comp_(items_[other],items_[best])){
+      best = other;
+    }
+  }
+
+  // compare best child w/ curr node 
+  if (comp_(items_[best], items_[i])){
+    std::swap(items_[best], items_[i]);
+    trickle_down(best);
+  }
+}
+  
+
+template<typename T, typename PComparator>
+Heap<T,PComparator>::Heap(int m, PComparator c): m_(m), comp_(c) {}
+
+template<typename T, typename PComparator>
+Heap<T,PComparator>::~Heap() {}
+
+template<typename T, typename PComparator>
+void Heap<T,PComparator>::push(const T& item){
+  items_.push_back(item);
+  if (!empty()){
+    trickle_up(items_.size()-1);
+  }
+}
+
+template<typename T, typename PComparator>
+size_t Heap<T,PComparator>::size() const{
+  return items_.size();
+}
+
+template<typename T, typename PComparator>
+
+bool Heap<T,PComparator>::empty() const{
+  return items_.empty();
+}
 
 // We will start top() for you to handle the case of 
 // calling top on an empty heap
@@ -81,14 +147,12 @@ T const & Heap<T,PComparator>::top() const
     // ================================
     // throw the appropriate exception
     // ================================
-
+    throw std::underflow_error("heap is empty");
 
   }
   // If we get here we know the heap has at least 1 item
   // Add code to return the top element
-
-
-
+  return items_.front();
 }
 
 
@@ -101,15 +165,17 @@ void Heap<T,PComparator>::pop()
     // ================================
     // throw the appropriate exception
     // ================================
-
-
+    throw std::underflow_error("heap is empty");
   }
+  items_.front() = items_.back();
+  items_.pop_back();
 
-
-
+  // edge case: empty 
+  if (!empty()){
+    // helper 
+    trickle_down(0);
+  }
 }
-
-
 
 #endif
 

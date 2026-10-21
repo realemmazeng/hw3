@@ -83,8 +83,23 @@ Node* llfilter(Node* head, Comp pred)
     //*********************************************
     // Provide your implementation below
     //*********************************************
-
-
+    
+    if (head == nullptr){
+      return nullptr;
+    }
+    
+    // brings u to last node 
+    Node* l = llfilter(head->next, pred);
+    
+    // unpause callstack last node 
+    if (pred(head->val)){
+      delete head;
+      return l;
+    } else {
+      // attach to the front of the list
+      head->next = l;
+      // return with the new list;
+      return head;
+    }
 }
-
 #endif
